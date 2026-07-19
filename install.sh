@@ -106,7 +106,7 @@ fi
 if [[ -z "$SOURCE_DIR" ]]; then
     info "No local source found. Cloning from GitHub..."
     TMP_CLONE=$(mktemp -d)
-    git clone --depth 1 https://github.com/your-username/penny.git "$TMP_CLONE" 2>/dev/null || {
+    git clone --depth 1 https://github.com/jpaine/penny.git "$TMP_CLONE" 2>/dev/null || {
         TMP_CLONE2=$(mktemp -d); echo "$PENNY_CLI" > "$TMP_CLONE2/need_source"
         err "Could not clone. Place install.sh alongside the Penny source files."
         rm -rf "$TMP_CLONE" "$TMP_CLONE2"; exit 1

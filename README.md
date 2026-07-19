@@ -17,7 +17,7 @@ Over time, Penny learns from your feedback. Reject a switch enough times and it 
 ## Install
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/your-username/penny/main/install.sh | bash
+curl -sfL https://raw.githubusercontent.com/jpaine/penny/main/install.sh | bash
 ```
 
 Or clone and run locally:
