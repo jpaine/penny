@@ -1,0 +1,13 @@
+{
+  "claude-haiku-4-5": {"input": 0.80, "output": 4.00},
+  "claude-sonnet-5": {"input": 3.00, "output": 15.00},
+  "claude-opus-4-8": {"input": 15.00, "output": 75.00},
+  "chars_per_token": 4,
+  "input_fraction": 0.3,
+  "output_fraction": 0.7,
+  "min_savings_cents_for_switch": 5,
+  "min_savings_cents_for_notification": 10,
+  "default_tier_majority_threshold": 0.6,
+  "daily_nudge_cap": 3,
+  "session_grace_period_hours": 24
+}
