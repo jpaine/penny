@@ -339,11 +339,75 @@ class TestPreference:
         rate = acceptance_rate()
         assert 0.5 < rate <= 1.0
 
+    def test_record_switch_none_does_not_count(self):
+        """Regression: a switch with unknown acceptance must not be tallied,
+        otherwise acceptance rate is pinned at 100% and conservative mode
+        can never trigger."""
+        import util
+        from preference import record_switch, acceptance_rate
+        record_switch(True, None)  # was a switch, outcome unknown
+        assert acceptance_rate() == 1.0
+        prefs = util.load_json(os.path.join(util.PENNY_DIR, "prefs.json"), {})
+        assert prefs.get("auto_switch_total", 0) == 0
+
+    def test_record_switch_false_lowers_rate(self):
+        from preference import record_switch, acceptance_rate
+        record_switch(True, True)
+        record_switch(True, False)
+        assert acceptance_rate() == 0.5
+
     def test_should_switch_conservatively(self):
         from preference import record_switch, should_switch_conservatively
         for _ in range(6):
             record_switch(True, False)
         assert should_switch_conservatively() is True
+
+    def test_should_switch_not_conservative_with_none_only(self):
+        from preference import record_switch, should_switch_conservatively
+        for _ in range(6):
+            record_switch(True, None)
+        # None outcomes aren't counted, so total stays 0 → not conservative
+        assert should_switch_conservatively() is False
+
+
+class TestLearnerConfidence:
+    def test_confidence_high_when_separated(self, monkeypatch):
+        import learner
+        from learner import save_feedback, predict, MIN_FEEDBACK_FOR_TRAIN
+        monkeypatch.setattr(learner, "MIN_FEEDBACK_FOR_TRAIN", 10)
+        # Plenty of separated training data so the model can be confident
+        for i in range(10):
+            save_feedback(f"fix typo number {i} in the readme", "standard", "basic")
+        for i in range(10):
+            save_feedback(f"refactor the entire system {i} architecture", "standard", "advanced")
+        tier, conf = predict("fix typo in the docs")
+        assert tier == "basic"
+        assert conf >= 0.6
+
+    def test_confidence_low_with_little_data(self, monkeypatch):
+        """With only a few examples, the model should stay humble and defer
+        to heuristics rather than override with a wild guess."""
+        import learner
+        from learner import save_feedback, predict, MIN_FEEDBACK_FOR_TRAIN
+        monkeypatch.setattr(learner, "MIN_FEEDBACK_FOR_TRAIN", 4)
+        for i in range(4):
+            save_feedback(f"fix typo number {i}", "standard", "basic")
+        for i in range(4):
+            save_feedback(f"refactor the entire system {i}", "standard", "advanced")
+        tier, conf = predict("fix typo in the docs")
+        assert tier == "heuristics"
+        assert 0.0 <= conf < 0.6
+
+    def test_confidence_in_range(self, monkeypatch):
+        import learner
+        from learner import save_feedback, predict, MIN_FEEDBACK_FOR_TRAIN
+        monkeypatch.setattr(learner, "MIN_FEEDBACK_FOR_TRAIN", 4)
+        for i in range(4):
+            save_feedback(f"fix typo number {i}", "standard", "basic")
+        for i in range(4):
+            save_feedback(f"refactor the entire system {i}", "standard", "advanced")
+        tier, conf = predict("fix typo in the docs")
+        assert 0.0 <= conf <= 1.0
 
 
 class TestCheckPreference:

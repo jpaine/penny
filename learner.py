@@ -119,7 +119,12 @@ def predict(prompt: str) -> Tuple[str, float]:
     if best_score == float("-inf"):
         return ("heuristics", 0.0)
 
-    confidence = 1.0 - (math.exp(second_score - best_score) if second_score != float("-inf") else 0.0)
+    # Confidence = normalized margin between best and second-best log-prob.
+    # A large, well-separated gap → confidence near 1.0; a tie → 0.5.
+    # Use abs(best) as a scale factor so very negative scores don't saturate.
+    scale = abs(best_score) + 1.0
+    margin = (best_score - second_score) / scale
+    confidence = 0.5 + 0.5 * math.tanh(margin)
 
     if confidence < CONFIDENCE_THRESHOLD:
         return ("heuristics", confidence)

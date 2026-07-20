@@ -98,6 +98,10 @@ print(1 if float(sys.argv[1]) > threshold else 0)
             FINAL_ARGS+=("--model" "$CHEAPER_MODEL")
             DOLLARS=$(python3 -c "import sys; print('\${:.2f}'.format(float(sys.argv[1])/100))" "$SAVINGS_CENTS" 2>/dev/null)
             echo " Penny: using faster mode for this task (~$DOLLARS saved)" >&2
+            # Record the switch so hook.py can later detect whether the user
+            # kept the cheaper model (accepted) or re-ran with a stronger one.
+            echo "{\"tier\": \"$TIER\", \"cheaper_model\": \"$CHEAPER_MODEL\", \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+                > "$PENNY_DIR/last_switch.json" 2>/dev/null
         fi
     fi
 

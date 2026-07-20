@@ -148,6 +148,21 @@ def main() -> None:
             if default_model and default_model != model:
                 auto_switched = True
 
+        # Determine whether the user *kept* the auto-switched (cheaper) model.
+        # The wrapper writes last_switch.json when it switches; we compare the
+        # transcript's actual model against the cheaper model it suggested.
+        nudge_accepted = None
+        if auto_switched:
+            switch_marker = util.load_json(
+                os.path.join(util.PENNY_DIR, "last_switch.json"), None
+            )
+            if switch_marker:
+                suggested = heuristics.normalize_model(
+                    switch_marker.get("cheaper_model", "")
+                )
+                actual = heuristics.normalize_model(transcript_model)
+                nudge_accepted = bool(suggested and actual == suggested)
+
         record: Dict[str, Any] = {
             "timestamp": now.isoformat(),
             "model": model,
@@ -188,7 +203,7 @@ def main() -> None:
                 prefs["suggested_default_switch"] = True
                 util.write_json(os.path.join(util.PENNY_DIR, "prefs.json"), prefs)
 
-        preference.record_switch(auto_switched, None)
+        preference.record_switch(auto_switched, nudge_accepted)
 
     except Exception:
         log_error(traceback.format_exc())

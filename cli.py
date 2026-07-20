@@ -286,16 +286,17 @@ def cmd_rate() -> None:
     print(f"Existing feedback entries: {feedback_count}\n")
 
     recent = sessions[-10:]
+    offset = len(sessions) - len(recent)
     for i, s in enumerate(recent):
         ts = _ts_from(s)
         ts_str = ts.strftime("%a %H:%M") if ts else "?"
         prompt = s.get("_sample_prompt", "")[:60]
         predicted = s.get("dominant_tier", "?")
-        print(f"  [{i}] {ts_str}  {predicted:>8}  {prompt}")
+        print(f"  [{offset + i}] {ts_str}  {predicted:>8}  {prompt}")
 
     print()
-    print("To rate: penny rate <index> <basic|standard|advanced>")
-    print("Example: penny rate 3 basic")
+    print("To rate: penny rate-session <index> <basic|standard|advanced>")
+    print("Example: penny rate-session 42 basic")
 
 
 def cmd_rate_session(args: List[str]) -> None:
